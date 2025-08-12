@@ -67,6 +67,7 @@ The platform features a dual-interface system:
 
 ## 📁 Project Structure
 
+```plaintext
 volunteer-hub/
 ├── index.html                 # Landing page
 ├── css/
@@ -90,8 +91,7 @@ volunteer-hub/
 │   ├── register.html          # User registration
 │   └── profile.html           # Profile management
 └── README.md                  # Project documentation
-
-
+```
 
 ## 🚀 Installation & Setup
 
