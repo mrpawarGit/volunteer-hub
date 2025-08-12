@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Find Opportunities - VolunteerHub</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <!-- Navigation will be loaded here by JavaScript -->
+
+    <div class="container mt-5 pt-5">
+      <!-- Page Header -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h1 class="display-6 fw-bold text-primary mb-2">
+                <i class="bi bi-search me-3"></i>Find Volunteer Opportunities
+              </h1>
+              <p class="text-muted mb-0">
+                Discover meaningful ways to make a difference in your community
+              </p>
+            </div>
+            <div class="d-none d-md-block">
+              <button
+                class="btn btn-outline-primary"
+                onclick="showCreateOpportunityModal()"
+                id="createOpportunityBtn"
+                style="display: none"
+              >
+                <i class="bi bi-plus-circle me-2"></i>Post Opportunity
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Enhanced Filters Sidebar -->
+        <div class="col-lg-3">
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">
+                <i class="bi bi-funnel me-2"></i>Filter Opportunities
+              </h5>
+            </div>
+            <div class="card-body">
+              <!-- Search within filters -->
+              <div class="mb-3">
+                <label for="quickSearch" class="form-label fw-semibold"
+                  >Quick Search</label
+                >
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="quickSearch"
+                    placeholder="Search by keywords..."
+                    onkeypress="handleQuickSearch(event)"
+                  />
+                  <button
+                    class="btn btn-outline-secondary"
+                    onclick="performQuickSearch()"
+                  >
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Category Filter -->
+              <div class="mb-3">
+                <label for="categoryFilter" class="form-label fw-semibold"
+                  >Category</label
+                >
+                <select class="form-select" id="categoryFilter">
+                  <option value="">All Categories</option>
+                  <option value="environment">🌱 Environment</option>
+                  <option value="education">📚 Education</option>
+                  <option value="health">🏥 Healthcare</option>
+                  <option value="community">🏘️ Community</option>
+                  <option value="animals">🐾 Animal Welfare</option>
+                  <option value="seniors">👴 Senior Care</option>
+                  <option value="children">👶 Children & Youth</option>
+                  <option value="food">🍽️ Food Security</option>
+                  <option value="housing">🏠 Housing</option>
+                  <option value="disaster">⚡ Disaster Relief</option>
+                </select>
+              </div>
+
+              <!-- Location Filter -->
+              <div class="mb-3">
+                <label for="locationFilter" class="form-label fw-semibold"
+                  >Location</label
+                >
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-geo-alt"></i>
+                  </span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="locationFilter"
+                    placeholder="Enter city or zip code"
+                  />
+                </div>
+              </div>
+
+              <!-- Date Range Filter -->
+              <div class="mb-3">
+                <label for="dateFilter" class="form-label fw-semibold"
+                  >Event Date</label
+                >
+                <input type="date" class="form-control" id="dateFilter" />
+              </div>
+
+              <!-- Duration Filter -->
+              <div class="mb-3">
+                <label for="durationFilter" class="form-label fw-semibold"
+                  >Duration</label
+                >
+                <select class="form-select" id="durationFilter">
+                  <option value="">Any Duration</option>
+                  <option value="1-2">1-2 hours</option>
+                  <option value="3-4">3-4 hours</option>
+                  <option value="5-8">5-8 hours</option>
+                  <option value="8+">8+ hours</option>
+                </select>
+              </div>
+
+              <!-- Remote/In-Person Filter -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Type</label>
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="inPersonFilter"
+                    checked
+                  />
+                  <label class="form-check-label" for="inPersonFilter">
+                    In-Person
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="remoteFilter"
+                    checked
+                  />
+                  <label class="form-check-label" for="remoteFilter">
+                    Remote/Virtual
+                  </label>
+                </div>
+              </div>
+
+              <!-- Skills Filter -->
+              <div class="mb-4">
+                <label for="skillsFilter" class="form-label fw-semibold"
+                  >Skills Needed</label
+                >
+                <select class="form-select" id="skillsFilter">
+                  <option value="">Any Skills</option>
+                  <option value="no-experience">No Experience Required</option>
+                  <option value="teaching">Teaching/Tutoring</option>
+                  <option value="technology">Technology</option>
+                  <option value="manual-labor">Manual Labor</option>
+                  <option value="administrative">Administrative</option>
+                  <option value="creative">Creative Arts</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="languages">Languages</option>
+                </select>
+              </div>
+
+              <!-- Filter Buttons -->
+              <div class="d-grid gap-2">
+                <button class="btn btn-primary" onclick="applyFilters()">
+                  <i class="bi bi-check2 me-2"></i>Apply Filters
+                </button>
+                <button
+                  class="btn btn-outline-secondary"
+                  onclick="clearFilters()"
+                >
+                  <i class="bi bi-arrow-clockwise me-2"></i>Clear All
+                </button>
+              </div>
+
+              <!-- Active Filters Display -->
+              <div id="activeFilters" class="mt-3" style="display: none">
+                <hr />
+                <small class="text-muted">Active Filters:</small>
+                <div id="activeFiltersList" class="mt-2">
+                  <!-- Active filter badges will appear here -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Stats Card -->
+          <div class="card shadow-sm">
+            <div class="card-body text-center">
+              <i class="bi bi-bar-chart display-6 text-success mb-2"></i>
+              <h6 class="card-title">Quick Stats</h6>
+              <div class="row text-center">
+                <div class="col-6">
+                  <div class="fw-bold text-primary" id="totalOpportunities">
+                    0
+                  </div>
+                  <small class="text-muted">Available</small>
+                </div>
+                <div class="col-6">
+                  <div class="fw-bold text-success" id="matchingOpportunities">
+                    0
+                  </div>
+                  <small class="text-muted">Matching</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced Opportunities List -->
+        <div class="col-lg-9">
+          <!-- Search and Sort Bar -->
+          <div
+            class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3"
+          >
+            <div class="d-flex align-items-center">
+              <h2 class="mb-0 me-3">Available Opportunities</h2>
+              <span class="badge bg-primary rounded-pill" id="opportunityCount"
+                >0 found</span
+              >
+            </div>
+            <div class="d-flex gap-2 w-100 w-md-auto">
+              <div class="input-group" style="max-width: 300px">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="searchInput"
+                  placeholder="Search opportunities..."
+                  onkeypress="handleSearchKeypress(event)"
+                />
+                <button
+                  class="btn btn-outline-secondary"
+                  onclick="searchOpportunities()"
+                >
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+              <select
+                class="form-select"
+                id="sortFilter"
+                style="max-width: 150px"
+                onchange="applySorting()"
+              >
+                <option value="date-asc">Date (Soon)</option>
+                <option value="date-desc">Date (Later)</option>
+                <option value="title">Title A-Z</option>
+                <option value="duration">Duration</option>
+                <option value="spots">Spots Available</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- View Toggle -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="btn-group" role="group">
+              <button
+                type="button"
+                class="btn btn-outline-secondary active"
+                id="gridViewBtn"
+                onclick="switchView('grid')"
+              >
+                <i class="bi bi-grid-3x2"></i> Grid
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                id="listViewBtn"
+                onclick="switchView('list')"
+              >
+                <i class="bi bi-list-ul"></i> List
+              </button>
+            </div>
+            <small class="text-muted">
+              <i class="bi bi-info-circle me-1"></i>
+              <span id="resultsInfo">Showing all opportunities</span>
+            </small>
+          </div>
+
+          <!-- Opportunities Container -->
+          <div id="opportunitiesContainer" class="row g-4">
+            <!-- Opportunities will be loaded here -->
+          </div>
+
+          <!-- Loading Spinner -->
+          <div id="loadingSpinner" class="text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">
+              Finding volunteer opportunities for you...
+            </p>
+          </div>
+
+          <!-- No Results Message -->
+          <div id="noResults" class="text-center py-5" style="display: none">
+            <i class="bi bi-search display-1 text-muted mb-3"></i>
+            <h4>No opportunities found</h4>
+            <p class="text-muted mb-4">
+              Try adjusting your filters or search criteria
+            </p>
+            <button class="btn btn-primary" onclick="clearFilters()">
+              <i class="bi bi-arrow-clockwise me-2"></i>Clear Filters & Show All
+            </button>
+          </div>
+
+          <!-- Pagination -->
+          <nav
+            aria-label="Opportunities pagination"
+            id="paginationContainer"
+            style="display: none"
+          >
+            <ul class="pagination justify-content-center mt-4">
+              <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage('prev')">
+                  <i class="bi bi-chevron-left"></i>
+                </a>
+              </li>
+              <li class="page-item active">
+                <a class="page-link" href="#">1</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage('next')">
+                  <i class="bi bi-chevron-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Opportunity Modal -->
+    <div class="modal fade" id="opportunityModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header border-0">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-heart-fill text-primary me-2 fs-4"></i>
+              <h5 class="modal-title fw-bold mb-0" id="modalTitle"></h5>
+            </div>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body" id="modalBody">
+            <!-- Opportunity details will be loaded here -->
+          </div>
+          <div class="modal-footer border-0">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              data-bs-dismiss="modal"
+            >
+              <i class="bi bi-x me-2"></i>Close
+            </button>
+            <button type="button" class="btn btn-success" id="applyButton">
+              <i class="bi bi-hand-thumbs-up me-2"></i>Apply Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center">
+          <div class="modal-body p-4">
+            <i class="bi bi-check-circle-fill text-success display-4 mb-3"></i>
+            <h5 class="fw-bold mb-3">Application Submitted!</h5>
+            <p class="text-muted mb-4">
+              Your application has been sent to the organization. They will
+              contact you soon with next steps.
+            </p>
+            <div class="d-flex gap-2 justify-content-center">
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-dismiss="modal"
+                onclick="navigateTo('my-activities')"
+              >
+                <i class="bi bi-list-check me-2"></i>View My Applications
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                data-bs-dismiss="modal"
+              >
+                Continue Browsing
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer will be loaded here by JavaScript -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../js/navigation.js"></script>
+    <script type="module" src="../js/opportunities.js"></script>
+
+    <script>
+      // Quick search functionality
+      function handleQuickSearch(event) {
+        if (event.key === "Enter") {
+          performQuickSearch();
+        }
+      }
+
+      function performQuickSearch() {
+        const searchTerm = document.getElementById("quickSearch").value;
+        document.getElementById("searchInput").value = searchTerm;
+        searchOpportunities();
+      }
+
+      function handleSearchKeypress(event) {
+        if (event.key === "Enter") {
+          searchOpportunities();
+        }
+      }
+
+      // View switching functionality
+      function switchView(viewType) {
+        const gridBtn = document.getElementById("gridViewBtn");
+        const listBtn = document.getElementById("listViewBtn");
+        const container = document.getElementById("opportunitiesContainer");
+
+        if (viewType === "grid") {
+          gridBtn.classList.add("active");
+          listBtn.classList.remove("active");
+          container.className = "row g-4";
+        } else {
+          listBtn.classList.add("active");
+          gridBtn.classList.remove("active");
+          container.className = "row g-2";
+        }
+
+        // Re-render opportunities with new view
+        if (window.displayOpportunities) {
+          window.displayOpportunities(
+            window.currentOpportunities || [],
+            viewType
+          );
+        }
+      }
+
+      // Sorting functionality
+      function applySorting() {
+        if (window.applySorting) {
+          window.applySorting();
+        }
+      }
+
+      // Pagination functionality
+      function changePage(direction) {
+        if (window.changePage) {
+          window.changePage(direction);
+        }
+      }
+
+      // Create opportunity modal (for organization admins)
+      function showCreateOpportunityModal() {
+        // This would open a modal for creating new opportunities
+        alert("Create opportunity feature coming soon!");
+      }
+    </script>
+  </body>
+</html>

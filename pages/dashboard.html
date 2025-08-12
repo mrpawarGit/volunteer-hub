@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - VolunteerHub</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <!-- Navigation will be loaded here by JavaScript -->
+
+    <div class="container mt-5 pt-5">
+      <!-- Welcome Section -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div
+            class="welcome-card bg-gradient-primary text-white p-4 rounded shadow-sm"
+          >
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h2 class="mb-1">
+                  Welcome back, <span id="userWelcomeName">Volunteer</span>! 👋
+                </h2>
+                <p class="mb-0 opacity-75">
+                  Ready to make a difference today? Here's your volunteer
+                  activity overview.
+                </p>
+              </div>
+              <div class="d-none d-md-block">
+                <i class="bi bi-heart-fill display-3 opacity-25"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="card bg-success text-white h-100 shadow-sm">
+            <div
+              class="card-body text-center d-flex flex-column justify-content-center"
+            >
+              <i class="bi bi-clock-history display-4 mb-3 opacity-75"></i>
+              <h3 id="totalHours" class="fw-bold mb-1">0</h3>
+              <p class="mb-0 small opacity-75">Total Hours Volunteered</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card bg-info text-white h-100 shadow-sm">
+            <div
+              class="card-body text-center d-flex flex-column justify-content-center"
+            >
+              <i class="bi bi-calendar-check display-4 mb-3 opacity-75"></i>
+              <h3 id="completedActivities" class="fw-bold mb-1">0</h3>
+              <p class="mb-0 small opacity-75">Activities Completed</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card bg-warning text-white h-100 shadow-sm">
+            <div
+              class="card-body text-center d-flex flex-column justify-content-center"
+            >
+              <i class="bi bi-hourglass-split display-4 mb-3 opacity-75"></i>
+              <h3 id="pendingActivities" class="fw-bold mb-1">0</h3>
+              <p class="mb-0 small opacity-75">Pending Applications</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card bg-primary text-white h-100 shadow-sm">
+            <div
+              class="card-body text-center d-flex flex-column justify-content-center"
+            >
+              <i class="bi bi-building display-4 mb-3 opacity-75"></i>
+              <h3 id="organizationsCount" class="fw-bold mb-1">0</h3>
+              <p class="mb-0 small opacity-75">Partner Organizations</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+          <!-- Recent Activities -->
+          <div class="card shadow-sm mb-4">
+            <div
+              class="card-header bg-white d-flex justify-content-between align-items-center py-3"
+            >
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-activity text-primary me-2"></i>Recent
+                Activities
+              </h5>
+              <a
+                href="my-activities.html"
+                class="btn btn-sm btn-outline-primary"
+              >
+                <i class="bi bi-arrow-right me-1"></i>View All
+              </a>
+            </div>
+            <div class="card-body">
+              <div id="recentActivities">
+                <div class="d-flex justify-content-center py-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recommended Opportunities -->
+          <div class="card shadow-sm">
+            <div
+              class="card-header bg-white d-flex justify-content-between align-items-center py-3"
+            >
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-lightbulb text-warning me-2"></i>Recommended for
+                You
+              </h5>
+              <a
+                href="opportunities.html"
+                class="btn btn-sm btn-outline-primary"
+              >
+                <i class="bi bi-search me-1"></i>Browse All
+              </a>
+            </div>
+            <div class="card-body">
+              <div id="recommendedOpportunities" class="row g-3">
+                <div class="col-12 text-center py-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+          <!-- Quick Actions -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-lightning text-success me-2"></i>Quick Actions
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="d-grid gap-2">
+                <a href="opportunities.html" class="btn btn-primary">
+                  <i class="bi bi-search me-2"></i>Find Opportunities
+                </a>
+                <a href="groups.html" class="btn btn-outline-primary">
+                  <i class="bi bi-people me-2"></i>Join a Group
+                </a>
+                <a href="calendar.html" class="btn btn-outline-primary">
+                  <i class="bi bi-calendar me-2"></i>View Calendar
+                </a>
+                <a href="impact.html" class="btn btn-outline-primary">
+                  <i class="bi bi-bar-chart me-2"></i>Impact Report
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upcoming Events -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-calendar-event text-info me-2"></i>Upcoming
+                Events
+              </h5>
+            </div>
+            <div class="card-body">
+              <div id="upcomingEvents">
+                <div class="text-center py-3">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Achievements -->
+          <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-trophy text-warning me-2"></i>Recent
+                Achievements
+              </h5>
+            </div>
+            <div class="card-body">
+              <div id="recentAchievements">
+                <div class="text-center py-3">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer will be loaded here by JavaScript -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../js/navigation.js"></script>
+    <script type="module" src="../js/dashboard.js"></script>
+  </body>
+</html>

@@ -1,0 +1,408 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Helper function to check if user is admin (you can expand this later)
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    // Users collection - users can read/write their own profile
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      allow create: if isAuthenticated() && isOwner(userId) &&
+                   request.resource.data.keys().hasAll(['name', 'email', 'createdAt']) &&
+                   request.resource.data.email == request.auth.token.email;
+    }
+    
+    // Opportunities collection
+    match /opportunities/{opportunityId} {
+      // Anyone can read active opportunities
+      allow read: if resource.data.status == 'active';
+      
+      // Only authenticated users can read all opportunities (including inactive)
+      allow read: if isAuthenticated();
+      
+      // Only admins or organization members can create opportunities
+      allow create: if isAuthenticated() && 
+                   request.resource.data.keys().hasAll([
+                     'title', 'description', 'organization', 'location', 
+                     'date', 'duration', 'category', 'maxVolunteers', 'status'
+                   ]) &&
+                   request.resource.data.status == 'active' &&
+                   request.resource.data.createdBy == request.auth.uid;
+      
+      // Only the creator or admin can update opportunities
+      allow update: if isAuthenticated() && 
+                   (resource.data.createdBy == request.auth.uid || isAdmin());
+      
+      // Only admins can delete opportunities
+      allow delete: if isAdmin();
+    }
+    
+    // Applications collection
+    match /applications/{applicationId} {
+      // Users can read their own applications
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Organization members can read applications for their opportunities
+      allow read: if isAuthenticated() && 
+                 exists(/databases/$(database)/documents/opportunities/$(resource.data.opportunityId)) &&
+                 get(/databases/$(database)/documents/opportunities/$(resource.data.opportunityId)).data.createdBy == request.auth.uid;
+      
+      // Users can create applications for themselves
+      allow create: if isAuthenticated() && 
+                   request.resource.data.userId == request.auth.uid &&
+                   request.resource.data.keys().hasAll([
+                     'userId', 'opportunityId', 'status', 'appliedAt'
+                   ]) &&
+                   request.resource.data.status == 'pending' &&
+                   request.resource.data.hoursLogged == 0;
+      
+      // Users can update their own applications (for logging hours)
+      allow update: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid &&
+                   // Only allow updating specific fields
+                   request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['hoursLogged', 'workDescription', 'status', 'completedAt']);
+      
+      // Organization members can update application status
+      allow update: if isAuthenticated() && 
+                   exists(/databases/$(database)/documents/opportunities/$(resource.data.opportunityId)) &&
+                   get(/databases/$(database)/documents/opportunities/$(resource.data.opportunityId)).data.createdBy == request.auth.uid &&
+                   // Only allow updating status
+                   request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['status']);
+      
+      // Users can delete their own pending applications
+      allow delete: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid &&
+                   resource.data.status == 'pending';
+    }
+    
+    // Groups collection
+    match /groups/{groupId} {
+      // Anyone can read public groups
+      allow read: if resource.data.visibility == 'public';
+      
+      // Group members can read private groups
+      allow read: if isAuthenticated() && 
+                 request.auth.uid in resource.data.members;
+      
+      // Authenticated users can create groups
+      allow create: if isAuthenticated() && 
+                   request.resource.data.createdBy == request.auth.uid &&
+                   request.resource.data.keys().hasAll([
+                     'name', 'description', 'createdBy', 'members', 'visibility'
+                   ]) &&
+                   request.auth.uid in request.resource.data.members;
+      
+      // Group creator or admins can update groups
+      allow update: if isAuthenticated() && 
+                   (resource.data.createdBy == request.auth.uid || isAdmin());
+      
+      // Group creator or admins can delete groups
+      allow delete: if isAuthenticated() && 
+                   (resource.data.createdBy == request.auth.uid || isAdmin());
+    }
+    
+    // Group messages subcollection
+    match /groups/{groupId}/messages/{messageId} {
+      // Group members can read messages
+      allow read: if isAuthenticated() && 
+                 exists(/databases/$(database)/documents/groups/$(groupId)) &&
+                 request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+      
+      // Group members can create messages
+      allow create: if isAuthenticated() && 
+                   exists(/databases/$(database)/documents/groups/$(groupId)) &&
+                   request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members &&
+                   request.resource.data.senderId == request.auth.uid;
+      
+      // Message sender can update their own messages
+      allow update: if isAuthenticated() && 
+                   resource.data.senderId == request.auth.uid;
+      
+      // Message sender or group admin can delete messages
+      allow delete: if isAuthenticated() && 
+                   (resource.data.senderId == request.auth.uid ||
+                    get(/databases/$(database)/documents/groups/$(groupId)).data.createdBy == request.auth.uid);
+    }
+    
+    // Reviews collection
+    match /reviews/{reviewId} {
+      // Anyone can read reviews
+      allow read: if true;
+      
+      // Only authenticated users who completed an opportunity can create reviews
+      allow create: if isAuthenticated() && 
+                   request.resource.data.userId == request.auth.uid &&
+                   request.resource.data.keys().hasAll([
+                     'userId', 'opportunityId', 'organizationId', 'rating', 'comment', 'createdAt'
+                   ]) &&
+                   // Check if user has completed the opportunity
+                   exists(/databases/$(database)/documents/applications/$(request.auth.uid + '_' + request.resource.data.opportunityId)) &&
+                   get(/databases/$(database)/documents/applications/$(request.auth.uid + '_' + request.resource.data.opportunityId)).data.status == 'completed';
+      
+      // Users can update their own reviews
+      allow update: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own reviews
+      allow delete: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid;
+    }
+    
+    // Notifications collection
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read: if isAuthenticated() && 
+                 resource.data.userId == request.auth.uid;
+      
+      // System can create notifications (you'll handle this via Cloud Functions)
+      allow create: if isAuthenticated();
+      
+      // Users can update their own notifications (mark as read)
+      allow update: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid &&
+                   request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['read', 'readAt']);
+      
+      // Users can delete their own notifications
+      allow delete: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid;
+    }
+    
+    // Admin collection (for future admin functionality)
+    match /admins/{adminId} {
+      allow read: if isAuthenticated() && isOwner(adminId);
+      allow write: if false; // Only allow through backend/Cloud Functions
+    }
+    
+    // Analytics collection (read-only for users, write via Cloud Functions)
+    match /analytics/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only via Cloud Functions
+    }
+    
+    // Block all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Helper function to check if user is admin (you can expand this later)
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    // Users collection - users can read/write their own profile
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      allow create: if isAuthenticated() && isOwner(userId) &&
+                   request.resource.data.keys().hasAll(['name', 'email', 'createdAt']) &&
+                   request.resource.data.email == request.auth.token.email;
+    }
+    
+    // Opportunities collection
+    match /opportunities/{opportunityId} {
+      // Anyone can read active opportunities
+      allow read: if resource.data.status == 'active';
+      
+      // Only authenticated users can read all opportunities (including inactive)
+      allow read: if isAuthenticated();
+      
+      // Only admins or organization members can create opportunities
+      allow create: if isAuthenticated() && 
+                   request.resource.data.keys().hasAll([
+                     'title', 'description', 'organization', 'location', 
+                     'date', 'duration', 'category', 'maxVolunteers', 'status'
+                   ]) &&
+                   request.resource.data.status == 'active' &&
+                   request.resource.data.createdBy == request.auth.uid;
+      
+      // Only the creator or admin can update opportunities
+      allow update: if isAuthenticated() && 
+                   (resource.data.createdBy == request.auth.uid || isAdmin());
+      
+      // Only admins can delete opportunities
+      allow delete: if isAdmin();
+    }
+    
+    // Applications collection
+    match /applications/{applicationId} {
+      // Users can read their own applications
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Organization members can read applications for their opportunities
+      allow read: if isAuthenticated() && 
+                 exists(/databases/$(database)/documents/opportunities/$(resource.data.opportunityId)) &&
+                 get(/databases/$(database)/documents/opportunities/$(resource.data.opportunityId)).data.createdBy == request.auth.uid;
+      
+      // Users can create applications for themselves
+      allow create: if isAuthenticated() && 
+                   request.resource.data.userId == request.auth.uid &&
+                   request.resource.data.keys().hasAll([
+                     'userId', 'opportunityId', 'status', 'appliedAt'
+                   ]) &&
+                   request.resource.data.status == 'pending' &&
+                   request.resource.data.hoursLogged == 0;
+      
+      // Users can update their own applications (for logging hours)
+      allow update: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid &&
+                   // Only allow updating specific fields
+                   request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['hoursLogged', 'workDescription', 'status', 'completedAt']);
+      
+      // Organization members can update application status
+      allow update: if isAuthenticated() && 
+                   exists(/databases/$(database)/documents/opportunities/$(resource.data.opportunityId)) &&
+                   get(/databases/$(database)/documents/opportunities/$(resource.data.opportunityId)).data.createdBy == request.auth.uid &&
+                   // Only allow updating status
+                   request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['status']);
+      
+      // Users can delete their own pending applications
+      allow delete: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid &&
+                   resource.data.status == 'pending';
+    }
+    
+    // Groups collection
+    match /groups/{groupId} {
+      // Anyone can read public groups
+      allow read: if resource.data.visibility == 'public';
+      
+      // Group members can read private groups
+      allow read: if isAuthenticated() && 
+                 request.auth.uid in resource.data.members;
+      
+      // Authenticated users can create groups
+      allow create: if isAuthenticated() && 
+                   request.resource.data.createdBy == request.auth.uid &&
+                   request.resource.data.keys().hasAll([
+                     'name', 'description', 'createdBy', 'members', 'visibility'
+                   ]) &&
+                   request.auth.uid in request.resource.data.members;
+      
+      // Group creator or admins can update groups
+      allow update: if isAuthenticated() && 
+                   (resource.data.createdBy == request.auth.uid || isAdmin());
+      
+      // Group creator or admins can delete groups
+      allow delete: if isAuthenticated() && 
+                   (resource.data.createdBy == request.auth.uid || isAdmin());
+    }
+    
+    // Group messages subcollection
+    match /groups/{groupId}/messages/{messageId} {
+      // Group members can read messages
+      allow read: if isAuthenticated() && 
+                 exists(/databases/$(database)/documents/groups/$(groupId)) &&
+                 request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+      
+      // Group members can create messages
+      allow create: if isAuthenticated() && 
+                   exists(/databases/$(database)/documents/groups/$(groupId)) &&
+                   request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members &&
+                   request.resource.data.senderId == request.auth.uid;
+      
+      // Message sender can update their own messages
+      allow update: if isAuthenticated() && 
+                   resource.data.senderId == request.auth.uid;
+      
+      // Message sender or group admin can delete messages
+      allow delete: if isAuthenticated() && 
+                   (resource.data.senderId == request.auth.uid ||
+                    get(/databases/$(database)/documents/groups/$(groupId)).data.createdBy == request.auth.uid);
+    }
+    
+    // Reviews collection
+    match /reviews/{reviewId} {
+      // Anyone can read reviews
+      allow read: if true;
+      
+      // Only authenticated users who completed an opportunity can create reviews
+      allow create: if isAuthenticated() && 
+                   request.resource.data.userId == request.auth.uid &&
+                   request.resource.data.keys().hasAll([
+                     'userId', 'opportunityId', 'organizationId', 'rating', 'comment', 'createdAt'
+                   ]) &&
+                   // Check if user has completed the opportunity
+                   exists(/databases/$(database)/documents/applications/$(request.auth.uid + '_' + request.resource.data.opportunityId)) &&
+                   get(/databases/$(database)/documents/applications/$(request.auth.uid + '_' + request.resource.data.opportunityId)).data.status == 'completed';
+      
+      // Users can update their own reviews
+      allow update: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own reviews
+      allow delete: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid;
+    }
+    
+    // Notifications collection
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read: if isAuthenticated() && 
+                 resource.data.userId == request.auth.uid;
+      
+      // System can create notifications (you'll handle this via Cloud Functions)
+      allow create: if isAuthenticated();
+      
+      // Users can update their own notifications (mark as read)
+      allow update: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid &&
+                   request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['read', 'readAt']);
+      
+      // Users can delete their own notifications
+      allow delete: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid;
+    }
+    
+    // Admin collection (for future admin functionality)
+    match /admins/{adminId} {
+      allow read: if isAuthenticated() && isOwner(adminId);
+      allow write: if false; // Only allow through backend/Cloud Functions
+    }
+    
+    // Analytics collection (read-only for users, write via Cloud Functions)
+    match /analytics/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only via Cloud Functions
+    }
+    
+    // Block all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
