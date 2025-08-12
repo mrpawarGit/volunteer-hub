@@ -68,28 +68,29 @@ The platform features a dual-interface system:
 ## 📁 Project Structure
 
 volunteer-hub/
-├── index.html # Landing page
+├── index.html                 # Landing page
 ├── css/
-│ └── style.css # Custom styles
+│   └── style.css             # Custom styles
 ├── js/
-│ ├── firebase-config.js # Firebase configuration
-│ ├── navigation.js # Navigation management
-│ ├── opportunities.js # Opportunities functionality
-│ ├── dashboard.js # User dashboard
-│ ├── my-activities.js # Activity tracking
-│ ├── admin-dashboard.js # Admin interface
-│ └── profile.js # Profile management
+│   ├── firebase-config.js    # Firebase configuration
+│   ├── navigation.js         # Navigation management
+│   ├── opportunities.js      # Opportunities functionality
+│   ├── dashboard.js          # User dashboard
+│   ├── my-activities.js      # Activity tracking
+│   ├── admin-dashboard.js    # Admin interface
+│   └── profile.js           # Profile management
 ├── pages/
-│ ├── dashboard.html # User dashboard
-│ ├── opportunities.html # Browse opportunities
-│ ├── my-activities.html # User activities
-│ ├── admin-dashboard.html # Admin interface
-│ └── impact.html # Impact reporting
+│   ├── dashboard.html        # User dashboard
+│   ├── opportunities.html    # Browse opportunities
+│   ├── my-activities.html    # User activities
+│   ├── admin-dashboard.html  # Admin interface
+│   └── impact.html          # Impact reporting
 ├── auth/
-│ ├── login.html # User login
-│ ├── register.html # User registration
-│ └── profile.html # Profile management
-└── README.md # Project documentation
+│   ├── login.html           # User login
+│   ├── register.html        # User registration
+│   └── profile.html         # Profile management
+└── README.md               # Project documentation
+
 
 ## 🚀 Installation & Setup
 
