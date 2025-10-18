@@ -4,6 +4,12 @@ A comprehensive web-based platform that connects volunteers with meaningful oppo
 
 ## 🌐Live Demo - [VolunteerHub](https://volunteer-hub-ten.vercel.app/)
 
+---
+
+<img width="1890" height="915" alt="image" src="https://github.com/user-attachments/assets/5c7a2442-a5fa-42ba-ae30-1d63a55692aa" />
+
+---
+
 ## 📋 Table of Contents
 
 - [Overview](#overview)
